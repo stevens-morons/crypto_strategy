@@ -30,16 +30,19 @@ def underwater_plot(returns):
     fig = plt.figure(facecolor='white')
     ax=pf.plot_drawdown_underwater(returns)
     plt.savefig('underwater_plot.png')
+    plt.show()
 
 def monthly_returns(returns):
     fig = plt.figure(facecolor='white')
     ax = pf.plot_monthly_returns_heatmap(returns)
     plt.savefig('monthly_returns.png')
+    plt.show()
 
 def annual_returns(returns):
     fig = plt.figure(facecolor='white')
     ax = pf.plot_annual_returns(returns)
     plt.savefig('annual_returns.png')
+    ply.show()
 
 def create_full_tear_sheet(returns):
     pf.create_full_tear_sheet(returns)
@@ -73,3 +76,4 @@ def strategy(data):
 returns = strategy(data=data)
 # drawdown_periods(returns)
 underwater_plot(returns)
+create_full_tear_sheet(returns)
