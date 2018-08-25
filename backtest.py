@@ -9,8 +9,6 @@ from historical_data import exchange_data,write_to_csv,to_unix_time
 from empyrical.utils import nanmean
 from zipline.utils import math_utils
 
-
-
 symbol = 'BTC/USD'
 timeframe = '1d'
 since = '2017-01-01 00:00:00'
@@ -21,8 +19,7 @@ kraken = exchange_data('kraken','BTC/USD',timeframe=timeframe,since=hist_start_d
 write_to_csv(kraken,'BTC/USD','kraken')
 data = pd.DataFrame(kraken,columns=header)
 
-
-
+# ===== Using Pyfolio Functions ======
 def drawdown_periods(returns):
     fig = plt.figure(facecolor='white')
     plt.yscale('log')
@@ -53,7 +50,6 @@ stddev = 2; n = 20  # ====== parameters
 
 # ==== Calling the function from technical_indicators.py ==========
 bbands = BBANDS(data, stddev, n)
-
 
 def strategy(data):
     buy = data['Close'] > bbands['BB_Upper20']
