@@ -71,5 +71,5 @@ def strategy(data):
 
 
 returns = strategy(data=data)
-drawdown_periods(returns)
+# drawdown_periods(returns)
 underwater_plot(returns)
