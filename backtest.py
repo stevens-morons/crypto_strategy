@@ -56,7 +56,7 @@ def strategy(data):
     sell = data['Close'] < bbands['BB_Lower20']
 
     data['returns'] = np.log(data['Close']/data['Close'].shift(1))
-    data['position'] = np.zeros(len(data))
+    data['position'] = pd.Series(np.random.randn(len(data)), index=data.index)
 
     for row in range(0, len(data)):
         if data['Close'].iloc[row] > bbands['BB_Upper20'].iloc[row]:
@@ -68,6 +68,7 @@ def strategy(data):
     data['cum_returns'] = data['strat_returns'].dropna().cumsum().apply(np.exp)
 
     return data['strat_returns']
+
 
 returns = strategy(data=data)
 drawdown_periods(returns)
