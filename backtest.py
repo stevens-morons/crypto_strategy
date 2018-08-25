@@ -57,20 +57,20 @@ bbands = BBANDS(data, stddev, n)
 
 def strategy(data):
     buy = data['Close'] > bbands['BB_Upper20']
-    sell = data['Close'] > bbands['BB_Lower20']
+    sell = data['Close'] < bbands['BB_Lower20']
 
     data['returns'] = np.log(data['Close']/data['Close'].shift(1))
 
-    if buy == True:
-        data['position'] = 1
-    elif sell == True:
-        data['position'] = -1
+    for row in range(0,len(data)):
+        if data[row]['Close'] > bbands[row]['BB_Upper20']:
+            data[row]['position'] = 1
+        elif data[row]['Close'] < bbands[row]['BB_Lower20']:
+            data[row]['position'] = -1
 
     data['strat_returns'] = data['position'].shift(1) * data['returns']
     data['cum_returns'] = data['strat_returns'].dropna().cumsum().apply(np.exp)
 
     return data['strat_returns']
-
 returns = strategy(data=data)
 drawdown_periods(returns)
 underwater_plot(returns)
