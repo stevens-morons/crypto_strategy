@@ -56,17 +56,19 @@ def strategy(data):
     sell = data['Close'] < bbands['BB_Lower20']
 
     data['returns'] = np.log(data['Close']/data['Close'].shift(1))
+    data['position'] = np.zeros(len(data))
 
-    for row in range(0,len(data)):
-        if data[row]['Close'] > bbands[row]['BB_Upper20']:
-            data[row]['position'] = 1
-        elif data[row]['Close'] < bbands[row]['BB_Lower20']:
-            data[row]['position'] = -1
+    for row in range(0, len(data)):
+        if data['Close'].iloc[row] > bbands['BB_Upper20'].iloc[row]:
+            data['position'].iloc[row] = 1
+        elif data['Close'].iloc[row] < bbands['BB_Lower20'].iloc[row]:
+            data['position'].iloc[row] = -1
 
     data['strat_returns'] = data['position'].shift(1) * data['returns']
     data['cum_returns'] = data['strat_returns'].dropna().cumsum().apply(np.exp)
 
     return data['strat_returns']
+
 returns = strategy(data=data)
 drawdown_periods(returns)
 underwater_plot(returns)
