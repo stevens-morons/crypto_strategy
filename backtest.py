@@ -61,12 +61,16 @@ def strategy(data):
     data['returns'] = np.log(data['Close']/data['Close'].shift(1))
     data['position'] = 0 #pd.Series(np.random.randn(len(data)), index=data.index)
 
-    for row in range(0, len(data)):
+        for row in range(0, len(data)):
         if data['Close'].iloc[row] > bbands['BB_Upper20'].iloc[row]:
             data['position'].iloc[row] = 1
+            if data['position'].iloc[row-1] == 1:
+                data['position'].iloc[row] = 1
         elif data['Close'].iloc[row] < bbands['BB_Lower20'].iloc[row]:
             data['position'].iloc[row] = -1
-
+            if data['position'].iloc[row-1] == -1:
+                data['position'].iloc[row] = -1
+                
     data['strat_returns'] = data['position'].shift(1) * data['returns']
     data['cum_returns'] = data['strat_returns'].dropna().cumsum().apply(np.exp)
 
