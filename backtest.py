@@ -58,7 +58,7 @@ def strategy(data):
     buy = data['Close'] > bbands['BB_Upper20']
     sell = data['Close'] < bbands['BB_Lower20']
 
-    data['returns'] = np.log(data['Close']/data['Close'].shift(1))
+    data['returns'] = np.log(data['Close'].shift(1)/data['Close'])
     data['position'] = 0 #pd.Series(np.random.randn(len(data)), index=data.index)
 
         for row in range(0, len(data)):
