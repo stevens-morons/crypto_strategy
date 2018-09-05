@@ -47,10 +47,10 @@ def BBANDS(df, stddev, n):
     MA_low = pd.Series(pd.rolling_mean(df['Low'], n))
     MSD = pd.Series(pd.rolling_std(df['Close'], n))
     b1 = MA_high + stddev * MSD
-    B1 = pd.Series(b1, name = 'BB_Upper' + str(n))
+    B1 = pd.Series(b1, name = 'BB_Upper')
     df = df.join(B1)
     b2 = MA_low - stddev * MSD
-    B2 = pd.Series(b2, name = 'BB_Lower' + str(n))
+    B2 = pd.Series(b2, name = 'BB_Lower')
     df = df.join(B2)
     return df
 
@@ -179,9 +179,6 @@ def Vortex(df, n):
     VI = pd.Series(pd.rolling_sum(pd.Series(VM), n) / pd.rolling_sum(pd.Series(TR), n), name = 'Vortex_' + str(n))
     df = df.join(VI)
     return df
-
-
-
 
 
 #KST Oscillator
@@ -350,6 +347,12 @@ def ULTOSC(df):
 
 #Donchian Channel
 def DONCH(df, n):
+
+    df['Upper_DC'] = pd.rolling_max(df['High'], n)
+    df['Lower_DC'] = pd.rolling_min(df['Low'], n)
+    df['Upper_DC']=df['Upper_DC'].shift(1)
+    df['Lower_DC']=df['Lower_DC'].shift(1)
+    '''
     i = 0
     DC_l = []
     while i < n - 1:
@@ -363,7 +366,8 @@ def DONCH(df, n):
     DonCh = pd.Series(DC_l, name = 'Donchian_' + str(n))
     DonCh = DonCh.shift(n - 1)
     df = df.join(DonCh)
-    return df
+    '''
+    return df['Upper_DC'], df['Lower_DC']
 
 #Standard Deviation
 def STDDEV(df, n):
