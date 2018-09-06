@@ -2,11 +2,11 @@ import ccxt
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-# import pyfolio as pf
+import pyfolio as pf
 import csv; import datetime; import pytz
 from technical_indicators import BBANDS
 from historical_data import exchange_data,write_to_csv,to_unix_time
-# import backtest
+import backtest
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -64,12 +64,12 @@ def strategy(data):
         #
         # plt.show()
 
-    return data['strat_returns'] #cum_returns
+    return data['strat_returns'], cum_returns
 
 returns, equity_curve = strategy(data)
 print(returns, equity_curve)
-# backtest.drawdown_periods(returns)
-# backtest.underwater_plot(returns)
+backtest.drawdown_periods(returns)
+backtest.underwater_plot(returns)
 
 
 
