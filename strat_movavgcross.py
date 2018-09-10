@@ -24,7 +24,7 @@ period = []
 # write_to_csv(kraken,'BTC/USD','kraken')
 
 # data = pd.DataFrame(kraken, columns=header)
-print(data.head())
+# print(data.head())
 data = pd.read_csv("gemini_BTCUSD_1hr.csv" )
 # ============ Strategy Function - Exponential Moving average crossover ================
 def strategy(data):
