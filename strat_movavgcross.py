@@ -57,7 +57,7 @@ def strategy(data):
             data['trn_cost'].iloc[trd] = 0
 
         final_trn_cost = data['trn_cost'].shift(1)
-        print 'Transaction cost:', final_trn_cost
+        print('Transaction cost:', final_trn_cost)
         
         # Lagging our trading signals by one period
         trading_positions_final = trading_positions.shift(1) * trading_qty
