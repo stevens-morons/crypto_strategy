@@ -18,6 +18,7 @@ since = '2017-01-01 00:00:00'
 hist_start_date = int(to_unix_time(since))
 header = ['Timestamp', 'Date', 'Symbol', 'Open', 'High', 'Low', 'Close', 'Volume']
 period = []
+trn_cost = 0.001
 
 # ==========Initial exchange parameters =============
 # kraken = exchange_data('kraken', 'BTC/USD', timeframe=timeframe, since=hist_start_date)
@@ -46,12 +47,24 @@ def strategy(data):
         trading_positions = trading_positions_raw.apply(np.sign)
         print('Trading Positions:', trading_positions.head())
 
+        data['trad_posn_chg'] = trading_positions.shift(1) - trading_positions
+
+        data['trn_cost'] = 0
+        for trd in range(len(data)):
+            if data['trad_posn_chg'].iloc[trd] == 2 or data['trad_posn_chg'].iloc[trd] == -2:
+                data['trn_cost'].iloc[trd] = 2 * trn_cost
+        else:
+            data['trn_cost'].iloc[trd] = 0
+
+        final_trn_cost = data['trn_cost'].shift(1)
+        print 'Transaction cost:', final_trn_cost
+        
         # Lagging our trading signals by one period
         trading_positions_final = trading_positions.shift(1) * trading_qty
 
         # data['returns'] = np.log(data['Close'] / data['Close'].shift(1))
         data['returns']=(data['Close'].shift(1) / data['Close'])-1
-        data['strat_returns'] = data['returns'] * trading_positions_final
+        data['strat_returns'] = data['returns'] * trading_positions_final -  - final_trn_cost
         cum_returns = data['strat_returns'].dropna().cumsum()#.apply(np.exp)
         # print(data['strat_returns'].sum())
         print (cum_returns)
@@ -73,8 +86,8 @@ def strategy(data):
 
 returns, equity_curve = strategy(data)
 print(returns, equity_curve)
-backtest.drawdown_periods(returns)
-backtest.underwater_plot(returns)
+# backtest.drawdown_periods(returns)
+# backtest.underwater_plot(returns)
 
 
 
