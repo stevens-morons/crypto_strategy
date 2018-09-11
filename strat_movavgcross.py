@@ -26,10 +26,15 @@ period = []
 # data = pd.DataFrame(kraken, columns=header)
 # print(data.head())
 data = pd.read_csv("gemini_BTCUSD_1hr.csv" )
+
+def ema(data,period):
+    ema = data['Close'].ewm(span=period, adjust=False).mean()
+    return ema
+
 # ============ Strategy Function - Exponential Moving average crossover ================
 def strategy(data):
     for period in range(20,100,5):
-        ema_short = data['Close'].ewm(span=period, adjust=False).mean()
+        ema_short = ema(data,period)
 
         # Difference between prices & EMA timeseries
         trading_positions_raw = data['Close'] - ema_short
