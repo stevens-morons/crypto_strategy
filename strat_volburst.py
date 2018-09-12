@@ -7,6 +7,8 @@ from historical_data import exchange_data, write_to_csv, to_unix_time
 import warnings
 warnings.filterwarnings('ignore')
 
+start = time()
+
 # ==========Initial trade parameters =============
 symbol = 'BTC/USD'
 timeframe = '1d'
@@ -52,11 +54,38 @@ def strategy(data):
             while (data['position'].iloc[row - 1] == -1) and (data['Close'].iloc[row] < bbands['BB_Upper'].iloc[row]):
                 data['position'].iloc[row] = -1
 
-    data['strat_returns'] = data['position'].shift(1) * data['returns']
-    cum_returns = data['strat_returns'].dropna().cumsum().apply(np.exp)
+        data['strat_returns'] = data['position'].shift(1) * data['returns']
+        print str(period) + "Period : " + data['strat_returns']
+        
+        cum_returns = data['strat_returns'].dropna().cumsum()
+        print str(period) + "Period : " + data['cum_returns']
 
     return data['strat_returns'], cum_returns
 
-returns = strategy(data=data)
+# returns = strategy(data=data)
 # backtest.drawdown_periods(returns)
 # backtest.underwater_plot(returns)
+
+if __name__ == "__main__":
+    threads = 4 # No of threads created
+
+    # Create a list of jobs and then iterate through
+    # the number of threads appending each thread to the job list
+    jobs = []
+    for i in range(0, threads):
+        thread = threading.Thread(target=strategy(data))
+        jobs.append(thread)
+
+    # start threads
+    for j in jobs:
+        j.start()
+
+    # Finish all threads
+    for j in jobs:
+        j.join()
+
+    print "Processing Complete"
+
+end = time()
+print 'Total time for execution: {} secs '.format(start - end)
+
