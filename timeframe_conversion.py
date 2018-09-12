@@ -29,9 +29,9 @@ def convert(timeframes, dataset=data):
     '''
     
     ohlc_dict = {                                                                                                             
-            'Open':'first',                                                                                                    
-            'High':'max',                                                                                                       
-            'Low':'min',                                                                                                        
+            'Open': 'first',                                                                                                    
+            'High': 'max',                                                                                                       
+            'Low': 'min',                                                                                                        
             'Close': 'last',                                                                                                    
             'Volume': 'sum'
             }
@@ -43,4 +43,4 @@ def convert(timeframes, dataset=data):
     return str(len(timeframes)) + " files created."
 
 
-convert([5,10,15,30,60,120,240],dataset=data)
+convert([5,10,15,30,60,120,240], dataset=data)
