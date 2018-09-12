@@ -6,6 +6,8 @@ data = pd.read_csv('gemini_BTCUSD_2018_1min.csv')
 data = data.drop('Unix Timestamp', axis=1)
 data['Date'] = pd.to_datetime(data['Date'])
 data.set_index('Date', inplace=True)
+exchange = 'gemini'
+pair = 'BTCUSD'
 
 # Conversion method:
 # Open = open of the first minute in n minute interval
@@ -15,27 +17,28 @@ data.set_index('Date', inplace=True)
 # Volume = sum of volume for each minute in n minute interval
 
 
-ohlc_dict = {                                                                                                             
-'Open':'first',                                                                                                    
-'High':'max',                                                                                                       
-'Low':'min',                                                                                                        
-'Close': 'last',                                                                                                    
-'Volume': 'sum'
-}
+def convert(timeframes, dataset=data):
+    '''
+    Convert selected dataset to specified time frames.
+    
+    timeframes: list of desired timeframes in minutes format
+    dataset: dataset to be converted
+    
+    Example:
+    timeframes = [5,10,15]    
+    dataset = data
+    '''
+    
+    ohlc_dict = {                                                                                                             
+            'Open':'first',                                                                                                    
+            'High':'max',                                                                                                       
+            'Low':'min',                                                                                                        
+            'Close': 'last',                                                                                                    
+            'Volume': 'sum'
+            }
 
-data_5m = data.resample('5T', how=ohlc_dict, closed='left', label='left')
-data_10m = data.resample('10T', how=ohlc_dict, closed='left', label='left')
-data_15m = data.resample('15T', how=ohlc_dict, closed='left', label='left')
-data_30m = data.resample('30T', how=ohlc_dict, closed='left', label='left')
-data_60m = data.resample('60T', how=ohlc_dict, closed='left', label='left')
-data_120m = data.resample('120T', how=ohlc_dict, closed='left', label='left')
-data_240m = data.resample('240T', how=ohlc_dict, closed='left', label='left')
-
-
-data_5m.to_csv('gemini_BTCUSD_2018_5min.csv')
-data_10m.to_csv('gemini_BTCUSD_2018_10min.csv')
-data_15m.to_csv('gemini_BTCUSD_2018_15min.csv')
-data_30m.to_csv('gemini_BTCUSD_2018_30min.csv')
-data_60m.to_csv('gemini_BTCUSD_2018_60min.csv')
-data_120m.to_csv('gemini_BTCUSD_2018_120min.csv')
-data_240m.to_csv('gemini_BTCUSD_2018_240min.csv')
+    for i in timeframes:
+        dataset.resample(str(i)+"T", how=ohlc_dict, closed='left', label='left').to_csv(exchange + "_" + pair + "_" + str(i) + "m.csv")
+        
+    
+    return str(len(timeframes)) + " files created."
