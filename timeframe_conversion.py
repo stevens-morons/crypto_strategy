@@ -2,7 +2,15 @@ import pandas as pd
 from datetime import datetime
 
 data = pd.read_csv('gemini_BTCUSD_2018_1min.csv')
-data = data.drop('Unix Timestamp', axis=1)
+
+try:
+    data = data.drop('Unix Timestamp', axis=1)
+except:
+    try:
+        data = data.drop('Timestamp', axis=1)
+    except:
+        pass
+
 data['Date'] = pd.to_datetime(data['Date'])
 data.set_index('Date', inplace=True)
 exchange = 'gemini'
