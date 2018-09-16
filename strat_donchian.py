@@ -1,4 +1,3 @@
-import ccxt
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,9 +13,12 @@ warnings.filterwarnings('ignore')
 symbol = 'BTC/USD'
 timeframe = '1h'
 trading_qty = 1.0
-since = '2018-01-01 00:00:00'
-hist_start_date = int(to_unix_time(since))
-header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
+trn_cost = 0.0026       # === Transaction cost = 0.26%
+slippage = 0.002        # === Slippage = 0.2%
+borrow_cost = 0.0026    # === Assuming every short trade is 100 Hours
+# since = '2018-01-01 00:00:00'
+# hist_start_date = int(to_unix_time(since))
+# header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
 period = []
 
 # ==========Initial exchange parameters =============
@@ -41,35 +43,34 @@ def strategy(data):
         for row in range(len(data)):
             if data['position'].iloc[row] == 0:
                 if data['Close'].iloc[row] > upper_donch.iloc[row]:
-                    buy_price = data['Close'].iloc[row]
+                    buy_price = data['Close'].iloc[row] * (1+trn_cost+slippage)
                     # print ("Bought at : "+ str(buy_price) +'\n')
                     data['position'] = 1
 
                 elif data['Close'].iloc[row] < lower_donch.iloc[row]:
-                    sell_price= data['Close'].iloc[row]
+                    sell_price= data['Close'].iloc[row] * (1-trn_cost-slippage-borrow_cost)
                     data['position'] = -1
                     # data['strat_returns'] = sell_price / buy_price - 1
 
             elif data['position'].iloc[row] == 1:
                 if data['Close'].iloc[row] < lower_donch.iloc[row]:
-                    sell_price = data['Close'].iloc[row]
+                    sell_price = data['Close'].iloc[row] * (1-trn_cost-slippage)
                     data['position'] = 0
                     data['strat_returns'] = sell_price / buy_price - 1
 
             elif data['position'].iloc[row] == -1:
                 if data['Close'].iloc[row] > upper_donch.iloc[row]:
-                    buy_price = data['Close'].iloc[row]
+                    buy_price = data['Close'].iloc[row] * (1+trn_cost+slippage+borrow_cost)
                     data['position']= 0
                     data['strat_returns'] = sell_price/buy_price - 1
 
 
         # data['strat_returns'] = data['position'].shift(1) * data['returns']
         cum_returns = data['strat_returns'].dropna().cumsum()
-        print 'Cumulative Percentage Returns for ' + str(per) + 'period Donchian: {}%'.format(round(cum_returns[-1:],2))
+        print '\nCumulative Percentage Returns for ' + str(per) + ' period Donchian: {}%'.format(round(cum_returns[-1:], 2))
 
     return data['strat_returns']
 
 returns = strategy(data)
 # print returns,equity_curve
 # backtest.drawdown_periods(returns)
-# backtest.underwater_plot(returns)
