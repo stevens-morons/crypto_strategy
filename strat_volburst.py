@@ -18,9 +18,12 @@ start = time()
 # ==========Initial trade parameters =============
 symbol = 'BTC/USD'
 timeframe = '1d'
-since = '2017-01-01 00:00:00'
-hist_start_date = int(to_unix_time(since))
-header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
+trn_cost = 0.0026       # === Transaction cost = 0.26%
+slippage = 0.002        # === Slippage = 0.2%
+borrow_cost = 0.0026    # === Assuming every short trade is 100 Hours
+# since = '2017-01-01 00:00:00'
+# hist_start_date = int(to_unix_time(since))
+# header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
 
 # ==========Initial exchange parameters =============
 # kraken = exchange_data('kraken', 'BTC/USD', timeframe=timeframe, since=hist_start_date)
@@ -49,24 +52,24 @@ def strategy(data):
         for row in range(len(data)):
             if data['position'].iloc[row] == 0:
                 if data['Close'].iloc[row] > bbands['BB_Upper'].iloc[row]:
-                    buy_price = data['Close'].iloc[row]
+                    buy_price = data['Close'].iloc[row] * (1+trn_cost+slippage)
                     # print ("Bought at : "+ str(buy_price) +'\n')
                     data['position'] = 1
 
                 elif data['Close'].iloc[row] < bbands['BB_Lower'].iloc[row]:
-                    sell_price= data['Close'].iloc[row]
+                    sell_price= data['Close'].iloc[row] * (1-trn_cost-slippage-borrow_cost)
                     data['position'] = -1
                     # data['strat_returns'] = sell_price / buy_price - 1
 
             elif data['position'].iloc[row] == 1:
                 if data['Close'].iloc[row] < bbands['BB_Lower'].iloc[row]:
-                    sell_price = data['Close'].iloc[row]
+                    sell_price = data['Close'].iloc[row] * (1-trn_cost-slippage)
                     data['position'] = 0
                     data['strat_returns'] = sell_price / buy_price - 1
 
             elif data['position'].iloc[row] == -1:
                 if data['Close'].iloc[row] > bbands['BB_Upper'].iloc[row]:
-                    buy_price = data['Close'].iloc[row]
+                    buy_price = data['Close'].iloc[row] * (1+trn_cost+slippage+borrow_cost)
                     data['position']= 0
                     data['strat_returns'] = sell_price/buy_price - 1
 
@@ -83,4 +86,3 @@ print '\nTotal time for execution: {} secs '.format(round(end - start), 2)
 
 # backtest.drawdown_periods(returns)
 # backtest.underwater_plot(returns)
-
