@@ -28,7 +28,7 @@ data = pd.read_csv("gemini_BTCUSD_1hr.csv")
 
 # ============ Strategy Function - Donchian Bands crossover ================
 avg_true_range = ATR(data,24)
-slippage = 0.2 * avg_true_range['ATR']
+slippage = 0.2 * avg_true_range['ATR'] # === Slippage as function of volatility over last 24 periods
 
 buy_price = 0; sell_price = 0
 data['returns'] = 0
