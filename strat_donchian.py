@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import pyfolio as pf
 import csv; import datetime; import pytz
-from technical_indicators import DONCH
+from technical_indicators import DONCH, ATR
 from historical_data import exchange_data,write_to_csv,to_unix_time
 # import backtest
 import warnings
@@ -14,7 +14,6 @@ symbol = 'BTC/USD'
 timeframe = '1h'
 trading_qty = 1.0
 trn_cost = 0.0026       # === Transaction cost = 0.26%
-slippage = 0.002        # === Slippage = 0.2%
 borrow_cost = 0.0026    # === Assuming every short trade is 100 Hours
 # since = '2018-01-01 00:00:00'
 # hist_start_date = int(to_unix_time(since))
@@ -28,6 +27,8 @@ period = []
 data = pd.read_csv("gemini_BTCUSD_1hr.csv")
 
 # ============ Strategy Function - Donchian Bands crossover ================
+avg_true_range = ATR(data,24)
+slippage = 0.2 * avg_true_range['ATR']
 
 buy_price = 0; sell_price = 0
 data['returns'] = 0
