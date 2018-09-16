@@ -19,7 +19,6 @@ start = time()
 symbol = 'BTC/USD'
 timeframe = '1d'
 trn_cost = 0.0026       # === Transaction cost = 0.26%
-slippage = 0.002        # === Slippage = 0.2%
 borrow_cost = 0.0026    # === Assuming every short trade is 100 Hours
 # since = '2017-01-01 00:00:00'
 # hist_start_date = int(to_unix_time(since))
@@ -32,6 +31,8 @@ borrow_cost = 0.0026    # === Assuming every short trade is 100 Hours
 data = pd.read_csv("gemini_BTCUSD_1hr.csv")
 # =================================================================
 # ================ DIRECTIONAL STRATEGY ===========================
+avg_true_range = ATR(data,24)
+slippage = 0.2 * avg_true_range['ATR'] # === Slippage as a function of Volatility
 stddev = 2
 
 def strategy(data):
