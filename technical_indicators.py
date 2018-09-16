@@ -37,7 +37,7 @@ def ATR(df, n):
         TR_l.append(TR)
         i = i + 1
     TR_s = pd.Series(TR_l)
-    ATR = pd.Series(pd.ewma(TR_s, span = n, min_periods = n), name = 'ATR_' + str(n))
+    ATR = pd.Series(pd.ewma(TR_s, span = n, min_periods = n), name = 'ATR')
     df = df.join(ATR)
     return df
 
