@@ -32,7 +32,7 @@ data = pd.read_csv("gemini_BTCUSD_1hr.csv")
 # =================================================================
 # ================ DIRECTIONAL STRATEGY ===========================
 avg_true_range = ATR(data,24)
-slippage = 0.2 * avg_true_range['ATR'] # === Slippage as a function of Volatility
+slippage = 0.0001 * avg_true_range['ATR'] # === Slippage as a function of Volatility
 stddev = 2
 
 def strategy(data):
