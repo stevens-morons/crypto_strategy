@@ -1,8 +1,7 @@
 import ccxt
-import datetime
+# import datetime
 import time
-import math
-# import pandas as pd
+import pandas as pd
 import numpy as np
 import pprint
 from historical_data import exchange_data
@@ -12,10 +11,6 @@ import oms
 symbol = str('BTC/USD')
 symbol_list = ['BTC/USD', 'ETH/USD']
 timeframe = str('1d')
-# exchange = str('okex')
-start_date = str('2018-01-01')
-get_data = True
-ema_period = 100
 
 exchange_id = 'kraken'
 exchange_class = getattr(ccxt, exchange_id)
@@ -27,10 +22,12 @@ exchange = exchange_class({
 })
 
 def main():
-    while exchange.fetch_balance() > 0:
+    while exchange.fetch_balance()['USD']['free'] > 0:
         for sym in symbol_list:
-            init_macross(exchange, sym)
-
+            init_macross(exchange, sym)     # === Strategy 1 ====
+            # ===== Strategy 2 =====
+            # ===== Strategy 3 =====
+            # ===== Strategy 4 =====
             oms.trade_details(sym)
             oms.exchange_balances()
     time.sleep(60)
@@ -51,9 +48,8 @@ def init_macross(exchange,symbol):
     buy_condition = bid > ema_short
     sell_condition = ask < ema_short
 
-    init_qty = oms.position_dollar_value(symbol, per_trade_alloc=0.05, timeframe='1m') / oms.mid_price(exchange,symbol)
+    init_qty = oms.position_dollar_value(symbol, per_trade_alloc=0.05, timeframe='1m') / oms.mid_price(exchange, symbol)
     init_trade = oms.create_trade(exchange, symbol, qty=init_qty)
-    exit_trade = oms.closeout_trade(exchange, symbol, qty=init_qty)
 
 
 
