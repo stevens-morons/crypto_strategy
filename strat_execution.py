@@ -11,6 +11,8 @@ import oms
 symbol = str('BTC/USD')
 symbol_list = ['BTC/USD', 'ETH/USD']
 timeframe = str('1d')
+start_date = '2017-01-01 00:00:00'
+ema_period=100
 
 exchange_id = 'kraken'
 exchange_class = getattr(ccxt, exchange_id)
