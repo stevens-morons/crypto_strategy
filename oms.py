@@ -63,37 +63,33 @@ def mid_price(exchange, symbol):
 
 # ========= Create Buy/Sell Orders when strategy conditions are satisfied ==========
 def create_trade(exchange, symbol, qty):
+    position = 0
     buy_condition = False
     sell_condition = False
 
-    # qty = position_dollar_value(symbol, per_trade_alloc=per_trade_alloc, timeframe=timeframe)/mid_price(exchange, symbol)
-    while len(exchange.private_post_positions()) == 0:
+    if position == 0:
         if buy_condition:
             buy_order = exchange.create_limit_buy_order(symbol, qty,
                                                         order_book(exchange, symbol, 5)[1])
             print '{}'.format(symbol) + 'Buy Order created at:', buy_order['price']
+            position = 1
         elif sell_condition:
             sell_order = exchange.create_limit_sell_order(symbol, qty,
                                                           order_book(exchange, symbol, 5)[0])
             print '{}'.format(symbol) + 'Sell Order created at:', sell_order['price']
+            position = -1
 
-
-# ========== Create strategy exit orders ================
-def closeout_trade(exchange, symbol, qty):
-    buy_condition = False
-    sell_condition = False
-
-    # qty = position_dollar_value(symbol, per_trade_alloc=per_trade_alloc, timeframe=timeframe)/mid_price(exchange, symbol)
-    while len(exchange.private_post_positions()) > 0:
-        if exchange.private_post_positions()['side'] == 'buy' and sell_condition:
+    if position == 1:
+        if sell_condition:
             close_buy = exchange.create_limit_sell_order(symbol, qty,
                                                          order_book(exchange, symbol, 5)[0])
-            print '{}'.format(symbol) + 'Sell Order created at:', close_buy['price']
+            print '{}'.format(symbol) + 'Square off Sell Order created at:', close_buy['price']
 
-        elif exchange.private_post_positions()['side'] == 'sell' and buy_condition:
+    elif position == -1:
+        if buy_condition:
             close_sell = exchange.create_limit_buy_order(symbol, qty,
                                                          order_book(exchange, symbol, 5)[1])
-            print '{}'.format(symbol) + 'Buy Order created at:', close_sell['price']
+            print '{}'.format(symbol) + 'Square off Buy Order created at:', close_sell['price']
 
 
 # ======== Details of Open & Closed Trades =========
