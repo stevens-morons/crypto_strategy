@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 # import pyfolio as pf
 from collections import deque
 from historical_data import exchange_data, write_to_csv, to_unix_time
+from technical_indicators import ATR
 import threading
 import warnings
 warnings.filterwarnings('ignore')
@@ -24,13 +25,7 @@ header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
 # data = pd.DataFrame(kraken, columns=header)
 # print(data.head())
 data = pd.read_csv("gemini_BTCUSD_1hr.csv")
-
-
-def avg_hl(data):
-    hl_range = data['High'] - data['Low']
-    avg_HL = pd.rolling_mean(hl_range, 30)
-    return avg_HL
-
+atr = ATR(data,30)
 def hammer_pattern(data):
     '''
     Hammer - Open and close are near, low is much lower,
@@ -39,23 +34,64 @@ def hammer_pattern(data):
     :param data:
     :return:
     '''
-    trigger_candle = deque()
+    trigger_candle_high = deque([])
+    trigger_candle_low = deque([])
+
     for cdl in range(len(data)):
         cond_1 = (data['High'].iloc[cdl] - data['Low'].iloc[cdl]) >\
                  4*(data['Close'].iloc[cdl] - data['Open'].iloc[cdl])
 
         cond_2 = data['Close'].iloc[cdl] == data['High'].iloc[cdl]
-        cond_3 = 2 * (data['High'].iloc[cdl] - data['Close'].iloc[cdl]) <\
+        cond_3 = 2.5 * (data['High'].iloc[cdl] - data['Close'].iloc[cdl]) <\
                  data['Close'].iloc[cdl] - data['Open'].iloc[cdl]
 
         cond_4 = data['Close'].iloc[cdl-1] < data['Open'].iloc[cdl-1]
-        hammer = cond_1 and cond_4 and (cond_2 or cond_3)
+        cond_5 = data['Open'].iloc[cdl] == data['High'].iloc[cdl]
+        cond_6 = data['High'].iloc[cdl] - data['Low'].iloc[cdl] > 2*atr['ATR']
+        cond_7 = 2.5 * (data['High'].iloc[cdl] - data['Open'].iloc[cdl]) <\
+                 data['Open'].iloc[cdl] - data['Close'].iloc[cdl]
+
+        hammer = cond_1 and cond_4 and cond_6 and (cond_2 or cond_3 or cond_5 or cond_7)
 
         if hammer:
-            trigger_candle.append(data['High'].iloc[cdl])
-            trigger_candle.append(data['Low'].iloc[cdl])
+            trigger_candle_high.append(data['High'].iloc[cdl])
+            trigger_candle_low.append(data['Low'].iloc[cdl])
 
-    return trigger_candle
+    return trigger_candle_high[0], trigger_candle_low[0]
+
+
+def hanging_man(data):
+    '''
+    Bearish - Similar candle as a hammer;
+    only difference is it occurs in an uptrend
+    :param data: DatFrame with OHLC values
+    :return:
+    '''
+    trigger_candle_high = deque([])
+    trigger_candle_low = deque([])
+
+    for cdl in range(len(data)):
+        cond_1 = (data['High'].iloc[cdl] - data['Low'].iloc[cdl]) >\
+                 4*(data['Close'].iloc[cdl] - data['Open'].iloc[cdl])
+
+        cond_2 = data['Close'].iloc[cdl] == data['High'].iloc[cdl]
+        cond_3 = 2.5 * (data['High'].iloc[cdl] - data['Close'].iloc[cdl]) <\
+                 data['Close'].iloc[cdl] - data['Open'].iloc[cdl]
+
+        cond_4 = data['Close'].iloc[cdl-1] > data['Open'].iloc[cdl-1]
+        cond_5 = data['Open'].iloc[cdl] == data['High'].iloc[cdl]
+        cond_6 = data['High'].iloc[cdl] - data['Low'].iloc[cdl] > 2*atr['ATR']
+        cond_7 = 2.5 * (data['High'].iloc[cdl] - data['Open'].iloc[cdl]) <\
+                 data['Open'].iloc[cdl] - data['Close'].iloc[cdl]
+
+        hang_man = cond_1 and cond_4 and cond_6 and (cond_2 or cond_3 or cond_5 or cond_7)
+
+        if hang_man:
+            trigger_candle_high.append(data['High'].iloc[cdl])
+            trigger_candle_low.append(data['Low'].iloc[cdl])
+
+    return trigger_candle_high[0], trigger_candle_low[0]
+
 
 def bull_candle(data):
     '''
@@ -72,28 +108,70 @@ def bull_candle(data):
     for cdl in range(len(data)):
         cond_1 = data['Open'].iloc[cdl] < data['Close'].iloc[cdl-1]
         cond_2 = data['Close'].iloc[cdl] > data['High'].iloc[cdl-1]
-        cond_3 = data['Close'].iloc[cdl] > 0.75*\
-                                           (data['High'].iloc[cdl-1] - data['Low'].iloc[cdl-1])
+        cond_3 = data['Close'].iloc[cdl] > 0.75*(data['High'].iloc[cdl-1]
+                                                 - data['Low'].iloc[cdl-1])
+        cond_4 = data['High'].iloc[cdl-1] - data['Low'].iloc[cdl-1] > 1.5*atr['ATR'].iloc[cdl-1]
 
-        bull_cdl = cond_1 and (cond_2 or cond_3)
+        bull_cdl = cond_1 and cond_4 and (cond_2 or cond_3)
 
         if bull_cdl:
             trigger_candle_high.appendleft(data['High'].iloc[cdl])
-
             trigger_candle_low.appendleft(data['Low'].iloc[cdl])
 
-    return trigger_price
+    return trigger_candle_high[0], trigger_candle_low[0]
 
-def harami(data):
+def bullish_harami(data):
     '''
     Harami - In japanese, it means a woman who is visibly pregnant
     Previous candle is a long bearish one,
     :param data:
     :return:
     '''
+    trigger_candle_high = deque([])
+    trigger_candle_low = deque([])
 
-    # ==== Incomplete ======
+    for cdl in range(len(data)):
+        if data['High'].iloc[cdl-1] - data['Low'].iloc[cdl-1] > 1.5*atr['ATR'].iloc[cdl-1] and (
+                data['Open'].iloc[cdl] - data['Close'].iloc[cdl-1] > 0.8*atr['ATR']) and (
+                data['Open'].iloc[cdl-1] - data['Close'].iloc[cdl] > 0.8*atr['ATR']) and (
+                data('Close').iloc[cdl] - data['Open'].iloc[cdl]<0.25*atr['ATR']):
 
+            trigger_candle_high.appendleft(data['High'].iloc[cdl])
+            trigger_candle_low.appendleft(data['Low'].iloc[cdl])
+
+    return trigger_candle_high[0], trigger_candle_low[0]
+
+def bearish_harami(data):
+    '''
+    Harami - In japanese, it means a woman who is visibly pregnant
+    Previous candle is a long bearish one,
+    :param data:
+    :return:
+    '''
+    trigger_candle_high = deque([])
+    trigger_candle_low = deque([])
+
+    for cdl in range(len(data)):
+        if data['High'].iloc[cdl-1] - data['Low'].iloc[cdl-1] > 2*atr['ATR'].iloc[cdl-1] and (
+                data['Close'].iloc[cdl-1] - data['Open'].iloc[cdl] > 0.8*atr['ATR']) and (
+                data['Close'].iloc[cdl] - data['Open'].iloc[cdl-1] > 0.8*atr['ATR']) and (
+                data('Open').iloc[cdl] - data['Close'].iloc[cdl] < 0.25*atr['ATR']):
+
+            trigger_candle_high.appendleft(data['High'].iloc[cdl])
+            trigger_candle_low.appendleft(data['Low'].iloc[cdl])
+
+    return trigger_candle_high[0], trigger_candle_low[0]
+
+def morning_star(data):
+    '''
+    Bullish Reversal - 3 candle pattern; 1st candle is a long bearish one
+    2nd candle opens lower than the close of 1st and closes lower than close of 1st
+    3rd candle opens
+    :param data:
+    :return:
+    '''
+
+# ======= Incomplete ======================
 
 
 
