@@ -180,28 +180,18 @@ def morning_star(data):
     :param data:
     :return:
     '''
+    trigger_candle_high = deque([])
+    trigger_candle_low = deque([])
 
-# ======= Incomplete ======================
+    for cdl in range(len(data)):
+        if data['High'].iloc[cdl - 2] - data['Low'].iloc[cdl - 2] > 2 * atr['ATR'].iloc[cdl - 2] and (
+                data['Open'].iloc[cdl-2] - data['Close'].iloc[cdl-2] > 1.5*atr['ATR'].iloc[cdl-2]) and (
+                data['High'].iloc[cdl-1] - data['Low'].iloc[cdl-1]<0.3*atr['ATR'].iloc[cdl-1]) and (
+                data['High'].iloc[cdl] - data['Low'].iloc[cdl] > 2 * atr['ATR'].iloc[cdl]) and (
+                data['Close'].iloc[cdl] - data['Open'].iloc[cdl] > 1.5*atr['ATR'].iloc[cdl]):
+            
+            trigger_candle_high.appendleft(data['High'].iloc[cdl])
+            trigger_candle_low.appendleft(data['Low'].iloc[cdl])
 
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return trigger_candle_high[0], trigger_candle_low[0]
 
