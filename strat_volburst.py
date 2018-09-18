@@ -35,7 +35,7 @@ avg_true_range = ATR(data,24)
 slippage = 0.0001 * avg_true_range['ATR'] # === Slippage as a function of Volatility
 stddev = 2
 
-def strategy(data):
+def strategy(data, list_periods):
     '''
     :param data: dataframe with OHLCV
     :return: Strategy Returns and Equity Curve
@@ -47,7 +47,7 @@ def strategy(data):
     data['returns'] = np.log(data['Close'].shift(1) / data['Close'])
     data['position'] = 0
 
-    for period in range(10, 100, 5):
+    for period in list_periods:
         bbands = BBANDS(data, stddev, period)
 
         for row in range(len(data)):
@@ -81,7 +81,8 @@ def strategy(data):
 
     return data['strat_returns']
 
-returns = strategy(data=data)
+list_periods = range(10, 50, 5)
+returns = strategy(data=data, list_periods=list_periods)
 end = time()
 print '\nTotal time for execution: {} secs '.format(round(end - start), 2)
 
