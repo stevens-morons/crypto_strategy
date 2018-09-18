@@ -26,6 +26,13 @@ header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
 # print(data.head())
 data = pd.read_csv("gemini_BTCUSD_1hr.csv")
 atr = ATR(data,30)
+
+'''
+Code for Japanese Candlestick Bullish & Bearish
+Reversal Patterns like Hammer(Bullish), Hanging Man(Bearish),
+Piercing pattern(Bullish), Dark Cloud Cover(Bearish) and many more
+'''
+
 def hammer_pattern(data):
     '''
     Hammer - Open and close are near, low is much lower,
@@ -120,6 +127,7 @@ def bull_candle(data):
 
     return trigger_candle_high[0], trigger_candle_low[0]
 
+
 def bullish_harami(data):
     '''
     Harami - In japanese, it means a woman who is visibly pregnant
@@ -141,6 +149,7 @@ def bullish_harami(data):
 
     return trigger_candle_high[0], trigger_candle_low[0]
 
+
 def bearish_harami(data):
     '''
     Harami - In japanese, it means a woman who is visibly pregnant
@@ -161,6 +170,7 @@ def bearish_harami(data):
             trigger_candle_low.appendleft(data['Low'].iloc[cdl])
 
     return trigger_candle_high[0], trigger_candle_low[0]
+
 
 def morning_star(data):
     '''
