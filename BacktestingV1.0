@@ -1,0 +1,125 @@
+# Backtesting All Strategies
+# Write seperate classes for each strategy
+
+# Backtesting All Strategies
+# Write seperate classes for each strategy
+from backtesting import Strategy,Backtest
+from backtesting.test import SMA, GOOG
+from backtesting.lib import crossover
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+# import pyfolio as pf
+import csv; import datetime; import pytz
+# from technical_indicators import DONCH
+
+import sys
+sys.path.append('C:/Users/shenoym/cryptostrategy')
+
+# from historical_data import exchange_data,write_to_csv,to_unix_time
+import historical_data
+# import backtest
+import warnings
+warnings.filterwarnings('ignore')
+
+# ==========Initial trade parameters =============
+symbol = 'BTC/USD'
+timeframe = '1h'
+exchange='kraken'
+trading_qty = 1.0
+trn_cost = 0.0016       # === Transaction cost = 0.26%
+slippage = 0.001        # === Slippage = 0.1%
+borrow_cost = 0.0026    # === Assuming every short trade is 100
+since = '2017-01-01 00:00:00'
+hist_start_date = int(historical_data.to_unix_time(since))
+header = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
+
+#Donchian Channel
+def DONCH(df, n):
+
+    df['Upper_DC'] = df['High'].rolling(window=n).max().fillna(0)
+    df['Lower_DC'] = df['Low'].rolling(window=n).min().fillna(0)
+    df['Upper_DC']=df['Upper_DC'].shift(1)
+    df['Lower_DC']=df['Lower_DC'].shift(1)
+
+    return df['Upper_DC'], df['Lower_DC']
+
+kraken = historical_data.exchange_data(exchange=exchange,
+                       symbol=symbol,
+                       timeframe=timeframe, since=hist_start_date)
+historical_data.write_to_csv(kraken, symbol, exchange)
+dat = pd.DataFrame(kraken, columns=header)
+
+# MACD
+n_fast,n_slow=100,48
+def MACD(df, signal_line):
+    EMAfast = pd.Series(df).rolling(window=n_fast).mean()
+    EMAslow = pd.Series(df).rolling(window=n_slow).mean()
+    MACD = pd.Series(EMAfast - EMAslow, name = 'MACD')
+    MACDsign = pd.Series(MACD.rolling(window= signal_line).mean(), name = 'MACDsign')
+    MACDdiff = pd.Series(MACD - MACDsign, name = 'MACDdiff')
+#     df = df.join(MACD)
+#     df = df.join(MACDsign)
+#     df = df.join(MACDdiff)
+    return MACDdiff
+
+'''
+class Donchian(Strategy):
+
+    kraken = historical_data.exchange_data(exchange=exchange,
+                           symbol=symbol,
+                           timeframe=timeframe, since=hist_start_date)
+    historical_data.write_to_csv(kraken, symbol, exchange)
+    data = pd.DataFrame(kraken, columns=header)
+    print(data.head(5))
+#     data = pd.read_csv("kraken-BTCUSD-1h.csv",encoding='utf-8')
+
+    period = 20
+    
+    def init(self):
+        self.upper_donch, self.lower_donch = self.I(DONCH,self.data, self.period)
+#         print(self.upper_donch)
+    def next(self):
+        price=self.data.Close.iloc[-1]
+        if (not self.position and
+            price > self.upper_donch[-1]):
+            self.buy(sl=price < self.lower_donch[-1])
+            
+        elif (not self.position and
+             price < self.lower_donch[-1]):
+            self.sell(sl=price > self.upper_donch[-1])
+        
+'''
+class Macd(Strategy):
+    signal_line = 36
+    kraken = historical_data.exchange_data(exchange=exchange,
+                           symbol=symbol,
+                           timeframe=timeframe, since=hist_start_date)
+    historical_data.write_to_csv(kraken, symbol, exchange)
+    dat = pd.DataFrame(kraken, columns=header)
+#     print(data.head(5))
+#     data = pd.read_csv("kraken-BTCUSD-1h.csv",encoding='utf-8')
+
+    n_fast,n_slow,signal_line=48,100,36
+    
+    def init(self):
+        self.macd = self.I(MACD,self.data.Close,self.signal_line)
+#         print(self.macd)
+    
+    def next(self):
+#         mac=self.macd[-1]
+        if (not self.position and 
+            crossover(self.macd,0)):
+            self.buy(sl=crossover(0,self.macd))
+            
+        elif (not self.position and 
+              crossover(0,self.macd)):
+              self.sell(sl=crossover(self.macd,0))   
+
+# Calling and running various Backtesting strategies            
+# backtest_donchian = Backtest(data, Donchian, cash=10000, commission=.002)
+backtest_macd = Backtest(dat, Macd, cash=10000, commission=.002)
+
+# backtest_donchian.run()
+backtest_macd.run()
+# backtest.plot()
